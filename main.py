@@ -14,7 +14,7 @@ import os
 # Fonction d'enregistrement des résultats
 def save_results(max_capacity,file_index,file_name, best_solution, total_profit, total_weight, max_iter, tabu_tenure,tps_exec):
     results_file = f'results/{file_index}/{file_name}_{max_iter}_{tabu_tenure}.csv'
-    items_file= f'results/{file_index}/{file_name}_{max_iter}_{tabu_tenure}_items.csv'
+    items_file= f'results/{file_index}/item_solutions/{file_name}_{max_iter}_{tabu_tenure}_items.csv'
     file_exists = os.path.isfile(results_file)
 
     # Lire les résultats existants
