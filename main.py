@@ -76,33 +76,38 @@ if __name__ == '__main__':
 
     for max_iter in [10,100,500,1000,5000,10000,50000,100000,500000,1000000]:
         for tabu_tenure in [1,5,10,15,20]:
-            for i in range(10):
-                max_capaxity = int(max_capaxity)
-                weight = 0
-                x_0 = []
-                while weight <= max_capaxity:
-                    i = random.randint(0, len(items) - 1)
-                    if weight + items[i].weight > max_capaxity:
-                        break
-                    x_0.append(items[i])
-                    weight += items[i].weight
-                print("Initial solution weight:", weight)
-                print("Initial solution items:")
-                for item in x_0:
-                    print(item.id, item.profit, item.weight)
+            #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
+            if max_iter in [100000,500000,1000000] and fileIndex in [3,6,9] :
+                a=1
+            else :
+                a=10
+                for i in range(a):
+                    max_capaxity = int(max_capaxity)
+                    weight = 0
+                    x_0 = []
+                    while weight <= max_capaxity:
+                        i = random.randint(0, len(items) - 1)
+                        if weight + items[i].weight > max_capaxity:
+                            break
+                        x_0.append(items[i])
+                        weight += items[i].weight
+                    print("Initial solution weight:", weight)
+                    print("Initial solution items:")
+                    for item in x_0:
+                        print(item.id, item.profit, item.weight)
 
-                deb = time.time()
-                best_solution = tabu_search(x0=x_0, f=knapsack_profit, max_iter=max_iter, neighborhood_func=knapsack_neighborhood,
-                                            tabu_tenure=tabu_tenure, items=items, max_capacity=max_capaxity)
-                fin = time.time()
-                tps_exec = fin - deb
-                save_results(max_capaxity,fileIndex,file_name, best_solution, knapsack_profit(best_solution), sum(item.weight for item in best_solution),
-                             max_iter, tabu_tenure, tps_exec)
-                print("Best solution found:")
-                for item in best_solution:
-                    print(item.id, item.profit, item.weight)
-                print("Total profit:", knapsack_profit(best_solution))
-                print("Total weight:", sum(item.weight for item in best_solution))
+                    deb = time.time()
+                    best_solution = tabu_search(x0=x_0, f=knapsack_profit, max_iter=max_iter, neighborhood_func=knapsack_neighborhood,
+                                                tabu_tenure=tabu_tenure, items=items, max_capacity=max_capaxity)
+                    fin = time.time()
+                    tps_exec = fin - deb
+                    save_results(max_capaxity,fileIndex,file_name, best_solution, knapsack_profit(best_solution), sum(item.weight for item in best_solution),
+                                 max_iter, tabu_tenure, tps_exec)
+                    print("Best solution found:")
+                    for item in best_solution:
+                        print(item.id, item.profit, item.weight)
+                    print("Total profit:", knapsack_profit(best_solution))
+                    print("Total weight:", sum(item.weight for item in best_solution))
 
 
 
