@@ -70,7 +70,7 @@ def update_best_solution(population: List[List[int]], items: List[Item]) -> List
 
 def roulette_wheel_reproduction(population: List[List[int]], items: List[Item]) -> List[List[int]]:
     """
-    Reproduit les solutions sélectionnée en fonction de leur profit et les tri du meilleur profit au moins bon
+    Reproduit les solutions sélectionnée en fonction de leur profit
 
     :param items: la liste d'items
     :param population: une liste de solution avec 1 pour un item et 0 pour pas d'item.
@@ -81,7 +81,7 @@ def roulette_wheel_reproduction(population: List[List[int]], items: List[Item]) 
     total_profit_for_each_solution = []
 
     for solution in population:
-        total_profit_for_solution = numpy.sum(numpy.array([items[item_index].profit for item_index in solution]))
+        total_profit_for_solution = numpy.sum(numpy.array([items[item_index].profit for item_index, in_knapsack in enumerate(solution) if in_knapsack == 1]))
         total_profit_for_each_solution.append(total_profit_for_solution)
 
     total_profit = numpy.sum(total_profit_for_each_solution)
@@ -92,21 +92,23 @@ def roulette_wheel_reproduction(population: List[List[int]], items: List[Item]) 
     for i in range(len(population)):
         reproduction_proportion = total_profit_for_each_solution[i] / total_profit
         reproduction_proportion_for_each_solution.append(last_proportion + reproduction_proportion)
-        last_proportion = reproduction_proportion
+        last_proportion += reproduction_proportion
 
-    for solution_index in range(len(population)):
+    solution_number_to_add = numpy.zeros(len(population), dtype=int).tolist()
+
+    for index_solution in range(len(population)):
         random_probability = numpy.random.random()
 
         for index, reproduction_proportion in enumerate(reproduction_proportion_for_each_solution):
             if random_probability <= reproduction_proportion:
-                selected_solutions_for_reproduction.append(population[index])
+                solution_number_to_add[index] += 1
+                break
 
-    def calculate_profit(solution: List[int]) -> int:
-        return sum(items[i].profit for i, include in enumerate(solution) if include == 1)
+    for index, number_to_add in enumerate(solution_number_to_add):
+        for _ in range(number_to_add):
+            selected_solutions_for_reproduction.append(population[index])
 
-    population_sort_by_profit = sorted(selected_solutions_for_reproduction, key=calculate_profit, reverse=True)
-
-    return population_sort_by_profit
+    return selected_solutions_for_reproduction
 
 
 def best_solutions_reproduction(nb_best: int, population: List[List[int]], items: List[Item]) -> List[List[int]]:
@@ -126,40 +128,48 @@ def best_solutions_reproduction(nb_best: int, population: List[List[int]], items
     return population_sort_by_profit[:nb_best]
 
 
-def crossover(population: List[List[int]], items: List[Item], max_capacity: int) -> List[List[int]]:
+def crossover(population: List[List[int]], items: List[Item], max_capacity: int) -> List[int]:
     """
-    On a croiser une population en sélectionnant 2 items à chaque fois et en les coupant en deux puis en les réassemblant avec la partie de l'autre.
+    On va croiser deux solutions sélectionné au hasard dans la population passé en paramètre
 
     :param items: tous les items.
     :param population: une liste de solution avec 1 pour un item et 0 pour pas d'item.
     :param max_capacity: capacité maximale du sac.
-    :return: la population après le croisement
+    :return: la solution après le croisement
     """
 
-    new_population = []
     items_number = len(items)
 
-    # On retire la dernière si le nombre de solution n'est pas pair puisqu'on ne pourra pas croiser une solution seule.
-    if len(population) % 2 != 0:
-        new_population.append(population.pop())
+    random_index_first_crossover = numpy.random.randint(0, len(population))
+    random_index_second_crossover = random_index_first_crossover
 
-    for solution_index in range(0, len(population), 2):
-        first_crossover, second_crossover = get_crossover(population[solution_index], population[solution_index + 1], items_number)
+    # On veut croiser deux solutions différentes
+    while random_index_first_crossover == random_index_second_crossover:
+        random_index_second_crossover = numpy.random.randint(0, len(population))
 
-        # print("Solution {} et {} / {}".format(solution_index + 1, solution_index + 3, len(population)))
-        #
-        # print("Solution initiale : {}".format(population[solution_index]))
-        #
-        # print("Premier croisement : {}\ncheck : {}".format(first_crossover, check_knapsack(first_crossover, items, max_capacity)))
-        # print("Deuxième croisement : {}\ncheck : {}".format(second_crossover, check_knapsack(second_crossover, items, max_capacity)))
+    is_crossover_not_correct = True
 
-        while not check_knapsack(first_crossover, items, max_capacity) and not check_knapsack(second_crossover, items, max_capacity):
-            first_crossover, second_crossover = get_crossover(population[solution_index], population[solution_index + 1], items_number)
+    first_crossover = []
+    second_crossover = []
 
-        new_population.append(first_crossover)
-        new_population.append(second_crossover)
+    while is_crossover_not_correct:
+        first_crossover, second_crossover = get_crossover(population[random_index_first_crossover], population[random_index_second_crossover], items_number)
 
-    return new_population
+        is_first_crossover_correct = check_knapsack(first_crossover, items, max_capacity)
+        is_second_crossover_correct = check_knapsack(second_crossover, items, max_capacity)
+
+        if is_first_crossover_correct and not is_second_crossover_correct:
+            return first_crossover
+
+        if not is_first_crossover_correct and is_second_crossover_correct:
+            return second_crossover
+
+        is_crossover_not_correct = not is_first_crossover_correct and not is_second_crossover_correct
+
+    if numpy.random.random() <= 0.5:
+        return first_crossover
+
+    return second_crossover
 
 
 def get_crossover(first_element: List[int], second_element: List[int], items_number: int) -> (List[int], List[int]):
@@ -183,32 +193,33 @@ def get_crossover(first_element: List[int], second_element: List[int], items_num
 
 
 # Possible de choisir un nombre d'index à faire muter et on fait muter tous les index choisi
-def mutation(population: List[List[int]], items: List[Item], max_capacity: int, proba_mutation: float) -> List[List[int]]:
+def mutation(population: List[List[int]], items: List[Item], max_capacity: int, proba_mutation: float) -> List[int]:
     """
-    On fait muter la population suivant la probabilité de mutation.
+    On fait muter suivant la probabilité de mutation, une solution pioché au hasard dans la population.
     Reviens à ajouter un item s'il n'est pas dans le sac ou inversement à l'enlever.
 
     :param max_capacity: la capacité max du sac.
     :param items: tous les items possible à mettre dans le sac.
     :param population: la population à faire muter
     :param proba_mutation: la probabilité de mutation.
-    :return: la nouvelle population mutée
+    :return: la solution mutée.
     """
-    clone_population = population.copy()
+    random_index_mutation = numpy.random.randint(0, len(population))
 
-    for index, solution in enumerate(clone_population):
-        for index_item in range(len(solution)):
-            random_mutation = numpy.random.random()
-            if random_mutation <= proba_mutation:
-                result_number_mutation = 1 if solution[index_item] == 0 else 0
+    selected_solutions_for_mutation = population[random_index_mutation].copy()
 
-                population[index][index_item] = result_number_mutation
+    for index_item in range(len(selected_solutions_for_mutation)):
+        random_mutation = numpy.random.random()
+        if random_mutation <= proba_mutation:
+            result_number_mutation = 1 if selected_solutions_for_mutation[index_item] == 0 else 0
 
-                if result_number_mutation == 1:
-                    if not check_knapsack(population[index], items, max_capacity):
-                        population[index][index_item] = 0
+            selected_solutions_for_mutation[index_item] = result_number_mutation
 
-    return population
+            if result_number_mutation == 1:
+                if not check_knapsack(selected_solutions_for_mutation, items, max_capacity):
+                    selected_solutions_for_mutation[index_item] = 0
+
+    return selected_solutions_for_mutation
 
 
 def check_knapsack(solution: List[int], items: List[Item], max_capacity: int) -> bool:
@@ -257,13 +268,9 @@ def algo_genetique(
 
         for i in range(nb_best + 1, nombre_generation):
             if numpy.random.random() < proba_cross:
-                if debug:
-                    print("\n################################## Crossover ##################################\n")
-                population_iteration[k] = crossover(population_etoile_k_moins_un, items, max_capacity)
+                population_iteration[k].append(crossover(population_etoile_k_moins_un, items, max_capacity))
             else:
-                if debug:
-                    print("\n################################## Mutation ##################################\n")
-                population_iteration[k] = mutation(population_etoile_k_moins_un, items, max_capacity, proba_mutation)
+                population_iteration[k].append(mutation(population_etoile_k_moins_un, items, max_capacity, proba_mutation))
 
         best_known = update_best_solution(population_iteration[k], items)
 
