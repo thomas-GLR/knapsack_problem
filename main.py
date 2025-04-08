@@ -70,12 +70,9 @@ if __name__ == '__main__':
 
     Knapsack = Magasin(capacity=max_capaxity, items=items)
     print(max_capaxity)
-    # print(len(items))
-    # for item in items:
-    #     print(item.id, item.profit, item.weight)
 
-    for max_iter in [10,100,500,1000,5000,10000,50000,100000,500000,1000000]:
-        for tabu_tenure in [1,5,10,15,20]:
+    for max_iter in [10,100,500,1000,5000,10000,50000,100000,500000,1000000]:#
+        for tabu_tenure in [1,5,10,15,20]:#
             #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
             if max_iter in [100000,500000,1000000] and fileIndex in [2,5,8] :
                 a=1
