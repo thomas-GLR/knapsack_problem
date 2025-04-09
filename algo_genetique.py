@@ -3,6 +3,7 @@ import numpy
 from typing import List
 
 from item import Item
+from solution import Solution
 
 
 # TODO Vérifier temps éxécution
@@ -16,7 +17,7 @@ def generate_random_index(end, list_item_already_generated):
 
 # Le nombre d'item dans le sac peut faire partie des tests
 # (tester avec une pop init qui a bcp d'item de base ou une avec peu) et voir les différences
-def create_initial_population(n: int, max_capacity: int, items: List[Item]) -> List[List[int]]:
+def create_initial_population(n: int, items: List[Item]) -> List[Solution]:
     """
     Créer la population initiale de solutions.
     Une solution a la taille du nombre d'item et un index de la solution correspond à un item de la liste d'items.
@@ -24,7 +25,6 @@ def create_initial_population(n: int, max_capacity: int, items: List[Item]) -> L
     Si on a 0 alors l'item n'est pas dans le sac.
 
     :param n: le nombre de solutions à créer
-    :param max_capacity: la capcité maximal du sac
     :param items: la liste des items
     :return: la liste des solutions.
     """
@@ -32,20 +32,17 @@ def create_initial_population(n: int, max_capacity: int, items: List[Item]) -> L
     index_already_generated = []
 
     for i in range(n):
-
-        new_population = numpy.zeros(len(items), dtype=int)
-
         random_index = generate_random_index(len(items), index_already_generated)
 
-        index_already_generated.append(random_index)
-        new_population[random_index] = 1
+        solution = Solution()
+        solution.add_item(random_index, items[random_index])
 
-        populations.append(new_population.tolist())
+        populations.append(solution)
 
     return populations
 
 
-def update_best_solution(population: List[List[int]], items: List[Item]) -> List[int]:
+def update_best_solution(population: List[Solution], items: List[Item]) -> Solution:
     """
     Récupère la meilleure solution de la population
 
@@ -53,44 +50,31 @@ def update_best_solution(population: List[List[int]], items: List[Item]) -> List
     :param items: la liste d'items
     :return: la meilleure solution de la population
     """
-    profits_total_for_each_population = []
+    best_solution_with_index = population[0].profit, 0
 
-    for i in range(len(population)):
-        profits_sum = 0
-        for j in range(len(population[i])):
-            is_present_in_knapsack = population[i][j]
+    for i in range(1, len(population)):
+        if population[i].profit > best_solution_with_index[0]:
+            best_solution_with_index = population[i].profit, i
 
-            if is_present_in_knapsack == 1:
-                profits_sum += items[j].profit
-
-        profits_total_for_each_population.append(profits_sum)
-
-    return population[profits_total_for_each_population.index(max(profits_total_for_each_population))]
+    return population[best_solution_with_index[1]]
 
 
-def roulette_wheel_reproduction(population: List[List[int]], items: List[Item]) -> List[List[int]]:
+def roulette_wheel_reproduction(population: List[Solution]) -> List[Solution]:
     """
     Reproduit les solutions sélectionnée en fonction de leur profit
 
-    :param items: la liste d'items
     :param population: une liste de solution avec 1 pour un item et 0 pour pas d'item.
     :return: une liste de solution avec doublons de solution en fonction de la reproduction.
     """
     selected_solutions_for_reproduction = []
 
-    total_profit_for_each_solution = []
-
-    for solution in population:
-        total_profit_for_solution = numpy.sum(numpy.array([items[item_index].profit for item_index, in_knapsack in enumerate(solution) if in_knapsack == 1]))
-        total_profit_for_each_solution.append(total_profit_for_solution)
-
-    total_profit = numpy.sum(total_profit_for_each_solution)
+    total_profit = sum(solution.profit for solution in population)
 
     reproduction_proportion_for_each_solution = []
 
     last_proportion = 0
     for i in range(len(population)):
-        reproduction_proportion = total_profit_for_each_solution[i] / total_profit
+        reproduction_proportion = population[i].profit / total_profit
         reproduction_proportion_for_each_solution.append(last_proportion + reproduction_proportion)
         last_proportion += reproduction_proportion
 
@@ -111,7 +95,7 @@ def roulette_wheel_reproduction(population: List[List[int]], items: List[Item]) 
     return selected_solutions_for_reproduction
 
 
-def best_solutions_reproduction(nb_best: int, population: List[List[int]], items: List[Item]) -> List[List[int]]:
+def best_solutions_reproduction(nb_best: int, population: List[Solution]) -> List[Solution]:
     """
     Retourne les nb_best meilleures solutions
 
@@ -120,10 +104,7 @@ def best_solutions_reproduction(nb_best: int, population: List[List[int]], items
     :param items: liste d'item.
     :return: les nb_best solutions gardées.
     """
-    def calculate_profit(solution: List[int]) -> int:
-        return sum(items[i].profit for i, include in enumerate(solution) if include == 1)
-
-    population_sort_by_profit = sorted(population, key=calculate_profit, reverse=True)
+    population_sort_by_profit = sorted(population, key=lambda solution: solution.profit, reverse=True)
 
     return population_sort_by_profit[:nb_best]
 
@@ -153,7 +134,8 @@ def crossover(population: List[List[int]], items: List[Item], max_capacity: int)
     second_crossover = []
 
     while is_crossover_not_correct:
-        first_crossover, second_crossover = get_crossover(population[random_index_first_crossover], population[random_index_second_crossover], items_number)
+        first_crossover, second_crossover = get_crossover(population[random_index_first_crossover],
+                                                          population[random_index_second_crossover], items_number)
 
         is_first_crossover_correct = check_knapsack(first_crossover, items, max_capacity)
         is_second_crossover_correct = check_knapsack(second_crossover, items, max_capacity)
@@ -193,7 +175,7 @@ def get_crossover(first_element: List[int], second_element: List[int], items_num
 
 
 # Possible de choisir un nombre d'index à faire muter et on fait muter tous les index choisi
-def mutation(population: List[List[int]], items: List[Item], max_capacity: int, proba_mutation: float) -> List[int]:
+def mutation(population: List[Solution], items: List[Item], max_capacity: int, proba_mutation: float) -> Solution:
     """
     On fait muter suivant la probabilité de mutation, une solution pioché au hasard dans la population.
     Reviens à ajouter un item s'il n'est pas dans le sac ou inversement à l'enlever.
@@ -204,6 +186,9 @@ def mutation(population: List[List[int]], items: List[Item], max_capacity: int, 
     :param proba_mutation: la probabilité de mutation.
     :return: la solution mutée.
     """
+    # 
+    number_item_to_mutate = len(items) * proba_mutation
+
     random_index_mutation = numpy.random.randint(0, len(population))
 
     selected_solutions_for_mutation = population[random_index_mutation].copy()
@@ -255,7 +240,7 @@ def algo_genetique(
     # TODO le prof a fait avec nombre_generation = 60 && nb_best = 20 pour un autre problème
 
     # On créé la première itération et donc la première population. Le tableau est de type -> List[List[List[int]]]
-    population_iteration = [create_initial_population(nombre_generation, max_capacity, items)]
+    population_iteration = [create_initial_population(nombre_generation, items)]
 
     best_known = update_best_solution(population_iteration[0], items)
 
@@ -263,14 +248,15 @@ def algo_genetique(
         if debug:
             print("Nombre de génération : {} / {}".format(k, nombre_generation))
 
-        population_etoile_k_moins_un = roulette_wheel_reproduction(population_iteration[k - 1], items)
+        population_etoile_k_moins_un = roulette_wheel_reproduction(population_iteration[k - 1])
         population_iteration.append(best_solutions_reproduction(nb_best, population_iteration[k - 1], items))
 
         for i in range(nb_best + 1, nombre_generation):
             if numpy.random.random() < proba_cross:
                 population_iteration[k].append(crossover(population_etoile_k_moins_un, items, max_capacity))
             else:
-                population_iteration[k].append(mutation(population_etoile_k_moins_un, items, max_capacity, proba_mutation))
+                population_iteration[k].append(
+                    mutation(population_etoile_k_moins_un, items, max_capacity, proba_mutation))
 
         best_known = update_best_solution(population_iteration[k], items)
 

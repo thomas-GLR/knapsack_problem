@@ -1,14 +1,12 @@
 import os
+from typing import List
+
 import matplotlib.pyplot as plt
 import numpy as np
-import time
-
 from tqdm import tqdm
-from alive_progress import alive_bar
-from item import Item
-from magasin import Magasin
+
 from algo_genetique import algo_genetique
-from typing import List
+from item import Item
 
 
 def get_profit_of_solution(solution: List[int], items: List[Item]) -> int:
