@@ -71,8 +71,8 @@ if __name__ == '__main__':
     Knapsack = Magasin(capacity=max_capaxity, items=items)
     print(max_capaxity)
 
-    for max_iter in [100000]:#10,100,500,1000,5000,10000,50000,,500000,1000000
-        for tabu_tenure in [20]:#1,5,10,15,
+    for max_iter in [1000000]:#10,100,500,1000,5000,10000,50000,100000,500000,1000000
+        for tabu_tenure in [15]:#1,5,10,15,20
             #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
             if max_iter in [100000,500000,1000000] and fileIndex in [2,5,8] :
                 #a=1
@@ -91,10 +91,10 @@ if __name__ == '__main__':
                     weight += items[i].weight
                 print("Initial solution weight:", weight)
                 print("Initial solution items:")
-                print(j/a)
+
                 for item in x_0:
                     print(item.id, item.profit, item.weight)
-
+                print(j, "/", a)
                 deb = time.time()
                 best_solution = tabu_search(x0=x_0, f=knapsack_profit, max_iter=max_iter, neighborhood_func=knapsack_neighborhood,
                                             tabu_tenure=tabu_tenure, items=items, max_capacity=max_capaxity)
