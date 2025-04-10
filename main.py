@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 #a=1
                 a=20
             else :
-                a=10
+                a=20
             for j in range(a):
                 max_capaxity = int(max_capaxity)
                 weight = 0
