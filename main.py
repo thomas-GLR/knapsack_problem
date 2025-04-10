@@ -3,6 +3,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 from tqdm import tqdm
 
 from algo_genetique import algo_genetique
@@ -50,11 +51,18 @@ def use_algo_genetique_with_asking_user(files: List[str], file_index: int):
 
     max_capacity, items = get_data_from_file(file_name)
 
-    best_solution = algo_genetique(60, max_capaxity, items, 20, -1.0, 0.3, False)
+    best_solution = algo_genetique(60, 60, max_capaxity, items, 20, -1.0, 0.3, False).profit
 
-    print("La meilleure solution de jeux de donnée {} est : {}".format(file_name,
-                                                                       get_profit_of_solution(best_solution, items)))
+    print("La meilleure solution de jeux de donnée {} est : {}".format(file_name, best_solution))
 
+
+# TODO récupérer dans CSV :
+# - id items
+# - profit solution
+# - poids solution
+# - paramètres solution
+
+# TODO tester avec même paramètre (peut etre les meilleurs) mais plein de fois pour voir si solutions très différentes ou pas
 
 # TODO Tester avec une autre méthode de mutation
 if __name__ == '__main__':
@@ -66,13 +74,14 @@ if __name__ == '__main__':
     x = []
     y = []
 
-    for number_generation in tqdm(range(60, 70), desc="Outer"):
+    for number_generation in tqdm(range(60, 660), desc="Outer"):
 
         x.append(number_generation)
         best_solutions = []
 
         for iteration_number in range(10):
-            best_solutions.append(get_profit_of_solution(algo_genetique(
+            best_solutions.append(algo_genetique(
+                60,
                 number_generation,
                 max_capacity_knapsack,
                 items_list,
@@ -80,7 +89,7 @@ if __name__ == '__main__':
                 0.5,
                 0.3,
                 False
-            ), items_list))
+            ).profit)
 
         y.append(np.mean(best_solutions, dtype=int))
 
@@ -88,7 +97,7 @@ if __name__ == '__main__':
     print(y)
 
     plt.plot(x, y, label="line 1")
-    plt.title("Evolution de la solution en fonction du nombre de génération")
-    plt.xlabel("x - Nombre de génération")
-    plt.ylabel("y - Solutions")
+    plt.title("Evolution de la solution en fonction du nombre de population")
+    plt.xlabel("x - Nombre de population")
+    plt.ylabel("y - Profits")
     plt.show()

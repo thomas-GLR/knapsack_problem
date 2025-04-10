@@ -20,3 +20,6 @@ class Solution:
 
     def check_enough_place(self, item: Item, max_capacity) -> bool:
         return self.weight + item.weight <= max_capacity
+
+    def contains_item(self, index_item: int) -> bool:
+        return index_item in self.items_indexes
