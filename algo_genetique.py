@@ -7,6 +7,7 @@ from typing import List
 import numpy as np
 
 from item import Item
+from quality_population_enum import QualityPopulationEnum
 from solution import Solution
 
 
@@ -29,13 +30,15 @@ def generate_random_index(end, list_item_already_generated):
 
 # Le nombre d'item dans le sac peut faire partie des tests
 # (tester avec une pop init qui a bcp d'item de base ou une avec peu) et voir les différences
-def create_initial_population(n: int, items: List[Item]) -> List[Solution]:
+def create_initial_population(n: int, items: List[Item], quality_population: QualityPopulationEnum, max_capacity: int) -> List[Solution]:
     """
     Créer la population initiale de solutions.
     Une solution a la taille du nombre d'item et un index de la solution correspond à un item de la liste d'items.
     Si on a 1 alors l'item est dans le sac.
     Si on a 0 alors l'item n'est pas dans le sac.
 
+    :param max_capacity: la capacité max du sac
+    :param quality_population: la qualité de la population initiale
     :param n: le nombre de solutions à créer
     :param items: la liste des items
     :return: la liste des solutions.
@@ -43,13 +46,43 @@ def create_initial_population(n: int, items: List[Item]) -> List[Solution]:
     populations = []
     index_already_generated = []
 
-    for i in range(n):
-        random_index = generate_random_index(len(items), index_already_generated)
+    if quality_population == QualityPopulationEnum.LOW:
+        for i in range(n):
+            random_index = generate_random_index(len(items), index_already_generated)
 
-        solution = Solution()
-        solution.add_item(random_index, items[random_index])
+            solution = Solution()
+            solution.add_item(random_index, items[random_index])
 
-        populations.append(solution)
+            populations.append(solution)
+    else:
+        capacity = max_capacity
+
+        if quality_population == QualityPopulationEnum.MEDIUM:
+            capacity = int(max_capacity / 2)
+
+        for i in range(n):
+            current_capacity = 0
+
+            solution = Solution()
+
+            # Je dois ajouter un item sinon j'ai le risque pour le dataset avec 100 items de ne pas voir d'item dans ma solution
+            random_index = generate_random_index(len(items), index_already_generated)
+            item = items[random_index]
+
+            current_capacity += item.weight
+            solution.add_item(random_index, item)
+
+            while current_capacity < capacity:
+                random_index = generate_random_index(len(items), index_already_generated)
+
+                item = items[random_index]
+
+                current_capacity += item.weight
+
+                if current_capacity < capacity:
+                    solution.add_item(random_index, item)
+
+            populations.append(solution)
 
     return populations
 
@@ -283,13 +316,14 @@ def algo_genetique(
         nb_best: int,
         proba_cross: float,
         proba_mutation: float,
-        debug: bool
+        debug: bool,
+        quality_population: QualityPopulationEnum,
 ) -> Solution:
     # TODO le prof a fait avec nombre_generation = 60 && nb_best = 20 pour un autre problème
 
     complete_time = time.time()
     # On créé la première itération et donc la première population. Le tableau est de type -> List[List[List[int]]]
-    population_iteration = [create_initial_population(nombre_population, items)]
+    population_iteration = [create_initial_population(nombre_population, items, quality_population, max_capacity)]
 
     best_known = update_best_solution(population_iteration[0])
 
@@ -299,6 +333,7 @@ def algo_genetique(
     mutation_time_avg = []
     update_best_solution_time_avg = []
 
+    # try:
     for k in range(1, nombre_generation):
 
         start_time = time.time()
@@ -349,4 +384,12 @@ def algo_genetique(
 
         end_time = time.time()
         print(f"Temps d'exécution : {end_time - complete_time:.4f} secondes")
+
+    # except Exception as e:
+    #     for index, solutions in enumerate(population_iteration):
+    #         print("Index numéro : {}".format(index))
+    #         for solution in solutions:
+    #             print("Profit : {}, poids: {}, index: {}".format(solution.profit, solution.weight, solution.items_indexes))
+    #     raise e
+
     return best_known
