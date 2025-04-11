@@ -71,14 +71,14 @@ if __name__ == '__main__':
     Knapsack = Magasin(capacity=max_capaxity, items=items)
     print(max_capaxity)
 
-    for max_iter in [1000000]:#10,100,500,1000,5000,10000,50000,100000,500000,1000000
-        for tabu_tenure in [15]:#1,5,10,15,20
+    for max_iter in [1000]:#10,100,500,1000,5000,10000,50000,100000,500000,1000000
+        for tabu_tenure in [1]:#1,5,10,15,20
             #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
             if max_iter in [100000,500000,1000000] and fileIndex in [2,5,8] :
                 #a=1
                 a=20
             else :
-                a=20
+                a=10
             for j in range(a):
                 max_capaxity = int(max_capaxity)
                 weight = 0
@@ -87,8 +87,12 @@ if __name__ == '__main__':
                     i = random.randint(0, len(items) - 1)
                     if weight + items[i].weight > max_capaxity:
                         break
-                    x_0.append(items[i])
-                    weight += items[i].weight
+                    # Vérifier si l'élément est déjà dans la solution
+                    if items[i] in x_0:
+                        i = random.randint(0, len(items) - 1)
+                    else:
+                        x_0.append(items[i])
+                        weight += items[i].weight
                 print("Initial solution weight:", weight)
                 print("Initial solution items:")
 

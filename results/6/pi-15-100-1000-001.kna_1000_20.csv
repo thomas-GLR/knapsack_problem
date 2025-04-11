@@ -1,2 +1,2 @@
 Nom de la base,Nombre d'iteration,Taille liste Tabou,Poids MAx,Total weight,Total profit,Temps d'execution,Fichier solution
-pi-15-100-1000-001.kna,1000,20,997,997,1002,0.0011894702911376953,results/6/item_solutions/pi-15-100-1000-001.kna_1000_20_items.csv
+pi-15-100-1000-001.kna,1000,20,997,995,1002,0.0009877681732177734,results/6/item_solutions/pi-15-100-1000-001.kna_1000_20_items.csv
