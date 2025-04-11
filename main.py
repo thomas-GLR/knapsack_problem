@@ -24,7 +24,7 @@ def save_results(max_capacity,file_index,file_name, best_solution, total_profit,
             reader = csv.reader(file)
             next(reader)
             for row in reader:
-                existing_profit = int(row[1])
+                existing_profit = int(row[5])
                 break
 
     #sauvegarder les résultats si le profit total est supérieur
@@ -71,14 +71,14 @@ if __name__ == '__main__':
     Knapsack = Magasin(capacity=max_capaxity, items=items)
     print(max_capaxity)
 
-    for max_iter in [1000]:#10,100,500,1000,5000,10000,50000,100000,500000,1000000
-        for tabu_tenure in [1]:#1,5,10,15,20
+    for max_iter in [50,100,500,1000,5000,10000,50000,100000,500000,1000000]:#10,100,500,1000,5000,10000,50000,100000,500000,1000000
+        for tabu_tenure in [1,5,10,15,20]:#1,5,10,15,20
             #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
-            if max_iter in [100000,500000,1000000] and fileIndex in [2,5,8] :
+            if max_iter in [10000,50000,100000,500000,1000000] and fileIndex in [1,2,4,5,7,8] :
                 #a=1
-                a=20
+                a=1
             else :
-                a=1000
+                a=10
             for j in range(a):
                 max_capaxity = int(max_capaxity)
                 weight = 0
