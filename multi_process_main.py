@@ -38,8 +38,8 @@ def get_data_from_file(file_name: str) -> (int, List[Item]):
 
 
 def write_data_in_file(file_name: str, results: List[Result]):
-    header = ["profit", "poids", "Nombre génération", "Nombre population", "Nombre meilleur solution sélectionnée",
-                   "Probabilité crossover", "Probabilité mutation", "Items sélectionnés", "Type population initiale"]
+    header = ["profit", "poids", "Items selectionnes", "Nombre generation", "Nombre population", "Nombre best",
+              "Probabilite crossover", "Probabilite mutation", "Type population initiale", "Temps d'execution"]
 
     with open('result/{}.csv'.format(file_name), 'w', newline='') as file:
         writer = csv.writer(file)
@@ -90,8 +90,8 @@ def main():
     folder_path = "data"
     files = os.listdir(folder_path)
 
-    proba_crossovers = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
-    proba_mutations = [0.005, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
+    proba_crossovers = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    proba_mutations = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
     quality_init_population = [QualityPopulationEnum.LOW, QualityPopulationEnum.MEDIUM, QualityPopulationEnum.HIGH]
 
     # Number of processes to use
@@ -104,7 +104,13 @@ def main():
 
     overall_start_time = time.time()
 
-    for file_name in files[::-1]:
+    files_100 = [6, 3, 0]
+    files_1000 = [7, 4, 1]
+    files_10000 = [8, 5, 2]
+    total_files = 3
+
+    for file_index in files_10000:
+        file_name = files[file_index]
         file_counter += 1
         file_start_time = time.time()
 
@@ -123,26 +129,27 @@ def main():
         # Create a list of all parameter combinations
         all_params = []
         for number_generation in range(60, 360, 10):
-            for number_population in range(10, 160, 5):
-                for type_init_population in quality_init_population:
-                    all_params.append((
-                        number_generation, number_population, int(number_population * 0.3),
-                        0.5, 0.3, type_init_population
-                ))
-                # for nb_best in range(1, number_population + 1):
-                #     for proba_crossover in proba_crossovers:
-                #         for proba_mutation in proba_mutations:
-                #             for type_init_population in quality_init_population:
-                #                 all_params.append((
-                #                     number_generation, number_population, nb_best,
-                #                     proba_crossover, proba_mutation, type_init_population
-                #                 ))
+            for number_population in range(10, 160, 10):
+                for nb_best in range(int(10000 * 0.2), 10000, 500):
+                    for type_init_population in quality_init_population:
+                        all_params.append((
+                            number_generation, number_population, nb_best,
+                            0.5, 0.3, type_init_population
+                        ))
+                    # for proba_crossover in proba_crossovers:
+                    #     for proba_mutation in proba_mutations:
+                    #         for type_init_population in quality_init_population:
+                    #             all_params.append((
+                    #                 number_generation, number_population, nb_best,
+                    #                 proba_crossover, proba_mutation, type_init_population
+                    #             ))
 
         total_tasks = len(all_params)
         print(f"Total tasks for file {file_name}: {total_tasks}")
         # Prepare data for multiprocessing
         task_data = []
-        for i, params in enumerate(all_params):
+
+        for i, params in enumerate(all_params[::-1]):
             task_data.append((i, params, max_capacity, items, file_name, total_tasks))
 
         # Initialize results list and counters

@@ -147,11 +147,14 @@ if __name__ == '__main__':
     folder_path = "data"
     files = os.listdir(folder_path)
 
-    max_capacity, items = get_data_from_file(files[0])
+    max_capacity, items = get_data_from_file(files[7])
 
     for i in tqdm(range(5000), desc="Test", colour="red"):
-        algo_genetique(60, 15, max_capacity, items, 5, 0.0, 0.1, False, QualityPopulationEnum.HIGH)
-
+        solution = algo_genetique(260, 135, max_capacity, items, 800, 1.0, 0.2, False, QualityPopulationEnum.LOW)
+        print("Profit : {}".format(solution.profit))
+        print("Poids : {}".format(solution.weight))
+        print("Index : {}".format(solution.items_indexes))
+    #999,998,216,260,135,800,1.0,0.2,LOW,0.15658116340637207
     # folder_path = "data"
     # files = os.listdir(folder_path)
     #
