@@ -14,6 +14,11 @@ from quality_population_enum import QualityPopulationEnum
 from result import Result
 
 
+def task_unpacker(packed_data):
+    task_index, params, max_capacity, items, file_name, total_tasks = packed_data
+    return process_single_task(task_index, params, max_capacity, items, file_name, total_tasks)
+
+
 def get_data_from_file(file_name: str) -> (int, List[Item]):
     items = []
     max_capacity = 0
@@ -85,8 +90,8 @@ def main():
     folder_path = "data"
     files = os.listdir(folder_path)
 
-    proba_crossovers = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    proba_mutations = [0.005, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0]
+    proba_crossovers = [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
+    proba_mutations = [0.005, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
     quality_init_population = [QualityPopulationEnum.LOW, QualityPopulationEnum.MEDIUM, QualityPopulationEnum.HIGH]
 
     # Number of processes to use
@@ -99,7 +104,7 @@ def main():
 
     overall_start_time = time.time()
 
-    for file_name in files:
+    for file_name in files[::-1]:
         file_counter += 1
         file_start_time = time.time()
 
@@ -117,31 +122,28 @@ def main():
 
         # Create a list of all parameter combinations
         all_params = []
-        for number_generation in range(60, 660):
-            for number_population in range(10, 310):
-                for nb_best in range(1, number_population + 1):
-                    for proba_crossover in proba_crossovers:
-                        for proba_mutation in proba_mutations:
-                            for type_init_population in quality_init_population:
-                                all_params.append((
-                                    number_generation, number_population, nb_best,
-                                    proba_crossover, proba_mutation, type_init_population
-                                ))
+        for number_generation in range(60, 360, 10):
+            for number_population in range(10, 160, 5):
+                for type_init_population in quality_init_population:
+                    all_params.append((
+                        number_generation, number_population, int(number_population * 0.3),
+                        0.5, 0.3, type_init_population
+                ))
+                # for nb_best in range(1, number_population + 1):
+                #     for proba_crossover in proba_crossovers:
+                #         for proba_mutation in proba_mutations:
+                #             for type_init_population in quality_init_population:
+                #                 all_params.append((
+                #                     number_generation, number_population, nb_best,
+                #                     proba_crossover, proba_mutation, type_init_population
+                #                 ))
 
         total_tasks = len(all_params)
         print(f"Total tasks for file {file_name}: {total_tasks}")
-
-        # Add the index to each parameter set
-        indexed_params = [(i, params) for i, params in enumerate(all_params)]
-
-        # Create a partial function with fixed parameters
-        process_func = partial(
-            process_single_task,
-            max_capacity=max_capacity,
-            items=items,
-            file_name=file_name,
-            total_tasks=total_tasks
-        )
+        # Prepare data for multiprocessing
+        task_data = []
+        for i, params in enumerate(all_params):
+            task_data.append((i, params, max_capacity, items, file_name, total_tasks))
 
         # Initialize results list and counters
         results = []
@@ -163,9 +165,7 @@ def main():
             batch_start_time = time.time()
 
             # Process tasks
-            for status, file, result, task_index in pool.imap_unordered(
-                    lambda x: process_func(x[0], x[1]), indexed_params
-            ):
+            for status, file, result, task_index in pool.imap_unordered(task_unpacker, task_data):
                 completed += 1
                 progress_bar.update(1)
 
@@ -206,4 +206,5 @@ def main():
 
 
 if __name__ == "__main__":
+    mp.freeze_support()
     main()

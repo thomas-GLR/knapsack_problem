@@ -4,7 +4,6 @@ import time
 
 from typing import List
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from tqdm import tqdm
@@ -143,15 +142,15 @@ def benchmark():
 # TODO Tester avec une autre méthode de mutation
 if __name__ == '__main__':
 
-    benchmark()
+    # benchmark()
 
-    # folder_path = "data"
-    # files = os.listdir(folder_path)
-    #
-    # max_capacity, items = get_data_from_file(files[0])
-    #
-    # for i in tqdm(range(5000), desc="Test", colour="red"):
-    #     algo_genetique(60, 10, max_capacity, items, 8, 0.2, 1.0, False, QualityPopulationEnum.MEDIUM)
+    folder_path = "data"
+    files = os.listdir(folder_path)
+
+    max_capacity, items = get_data_from_file(files[0])
+
+    for i in tqdm(range(5000), desc="Test", colour="red"):
+        algo_genetique(60, 15, max_capacity, items, 5, 0.0, 0.1, False, QualityPopulationEnum.HIGH)
 
     # folder_path = "data"
     # files = os.listdir(folder_path)
