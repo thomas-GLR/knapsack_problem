@@ -13,6 +13,8 @@ from item import Item
 from quality_population_enum import QualityPopulationEnum
 from result import Result
 
+from csv_column_name import CsvColumnName
+
 
 def task_unpacker(packed_data):
     task_index, params, max_capacity, items, file_name, total_tasks = packed_data
@@ -38,8 +40,18 @@ def get_data_from_file(file_name: str) -> (int, List[Item]):
 
 
 def write_data_in_file(file_name: str, results: List[Result]):
-    header = ["profit", "poids", "Items selectionnes", "Nombre generation", "Nombre population", "Nombre best",
-              "Probabilite crossover", "Probabilite mutation", "Type population initiale", "Temps d'execution"]
+    header = [
+        CsvColumnName.PROFIT.name,
+        CsvColumnName.WEIGHT.name,
+        CsvColumnName.ITEMS.name,
+        CsvColumnName.NB_GENERATION.name,
+        CsvColumnName.NB_POPULATION.name,
+        CsvColumnName.NB_BEST.name,
+        CsvColumnName.PROBA_CROSSOVER.name,
+        CsvColumnName.PROBA_MUTATION.name,
+        CsvColumnName.TYPE_INIT_POP.name,
+        CsvColumnName.TIME_EXECUTION.name
+    ]
 
     with open('result/{}.csv'.format(file_name), 'w', newline='') as file:
         writer = csv.writer(file)
@@ -106,7 +118,7 @@ def main():
 
     files_100 = [6, 3, 0]
     files_1000 = [7, 4, 1]
-    files_10000 = [8, 5, 2]
+    files_10000 = [2]
     total_files = 3
 
     for file_index in files_10000:
@@ -128,21 +140,30 @@ def main():
 
         # Create a list of all parameter combinations
         all_params = []
-        for number_generation in range(60, 360, 10):
-            for number_population in range(10, 160, 10):
-                for nb_best in range(int(10000 * 0.2), 10000, 500):
-                    for type_init_population in quality_init_population:
-                        all_params.append((
-                            number_generation, number_population, nb_best,
-                            0.5, 0.3, type_init_population
-                        ))
-                    # for proba_crossover in proba_crossovers:
-                    #     for proba_mutation in proba_mutations:
-                    #         for type_init_population in quality_init_population:
-                    #             all_params.append((
-                    #                 number_generation, number_population, nb_best,
-                    #                 proba_crossover, proba_mutation, type_init_population
-                    #             ))
+
+        for proba_crossover in proba_crossovers:
+            for proba_mutation in proba_mutations:
+                for type_init_population in quality_init_population:
+                    all_params.append((
+                        300, 100, 50,
+                        proba_crossover, proba_mutation, type_init_population
+                    ))
+
+        # for number_generation in range(60, 360, 100):
+        #     for number_population in range(10, 310, 100):
+        #         for nb_best in range(int(number_population * 0.2), number_population, int(number_population / 5)):
+        #             for type_init_population in quality_init_population:
+        #                 all_params.append((
+        #                     number_generation, number_population, nb_best,
+        #                     0.5, 0.5, type_init_population
+        #                 ))
+        #             # for proba_crossover in proba_crossovers:
+        #             #     for proba_mutation in proba_mutations:
+        #             #         for type_init_population in quality_init_population:
+        #             #             all_params.append((
+        #             #                 number_generation, number_population, nb_best,
+        #             #                 proba_crossover, proba_mutation, type_init_population
+        #             #             ))
 
         total_tasks = len(all_params)
         print(f"Total tasks for file {file_name}: {total_tasks}")
@@ -202,7 +223,7 @@ def main():
             progress_bar.close()
 
         # Write results to file
-        write_data_in_file(file_name, results)
+        write_data_in_file('test-proba-' + file_name, results)
 
         # If there were errors, write them to the error file
         if error_results:
