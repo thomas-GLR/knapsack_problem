@@ -84,9 +84,9 @@ if __name__ == '__main__':
             #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
             if max_iter in [100000,500000,1000000] and fileIndex in [2,5,8] :
                 #phase 1 : a=1
-                a=205
+                a=1000
             else :
-                a=205
+                a=1000
             for j in range(a):
                 max_capaxity = int(max_capaxity)
                 weight = 0
