@@ -2,10 +2,20 @@ import os
 import pandas as pd
 
 # Dossier contenant les fichiers CSV
+
+#phase 1
 #for i in range(0,9):
-i=2
-dossier =f"results/{i}"
-dossier_name=f"results_{i}"
+#i=8
+#dossier =f"results/{i}"
+#dossier_name=f"results_{i}"
+#phase 2
+#dossier =f"results2"
+#dossier_name=f"results2"
+#phase finale
+dossier =f"resultsFinale"
+dossier_name=f"resultsFinale"
+
+
 
 # Créer le dossier s'il n'existe pas
 

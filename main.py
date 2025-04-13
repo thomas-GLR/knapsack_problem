@@ -13,8 +13,16 @@ import os
 
 # Fonction d'enregistrement des résultats
 def save_results(max_capacity,file_index,file_name, best_solution, total_profit, total_weight, max_iter, tabu_tenure,tps_exec):
-    results_file = f'results/{file_index}/{file_name}_{max_iter}_{tabu_tenure}.csv'
-    items_file= f'results/{file_index}/item_solutions/{file_name}_{max_iter}_{tabu_tenure}_items.csv'
+    #phase 1
+    #results_file = f'results/{file_index}/{file_name}_{max_iter}_{tabu_tenure}.csv'
+    # items_file= f'results/{file_index}/item_solutions/{file_name}_{max_iter}_{tabu_tenure}_items.csv'
+    #phase 2
+    #results_file = f'results2/{file_name}_{max_iter}_{tabu_tenure}.csv'
+    #items_file = f'results2/item_solutions/{file_name}_{max_iter}_{tabu_tenure}_items.csv'
+    # phase finale
+    results_file = f'resultsFinale/{file_name}_{max_iter}_{tabu_tenure}.csv'
+    items_file = f'resultsFinale/item_solutions/{file_name}_{max_iter}_{tabu_tenure}_items.csv'
+
     file_exists = os.path.isfile(results_file)
 
     # Lire les résultats existants
@@ -71,14 +79,14 @@ if __name__ == '__main__':
     Knapsack = Magasin(capacity=max_capaxity, items=items)
     print(max_capaxity)
 
-    for max_iter in [50,100,500,1000,5000,10000,50000,100000,500000,1000000]:#10,100,500,1000,5000,10000,50000,100000,500000,1000000
-        for tabu_tenure in [1,5,10,15,20]:#1,5,10,15,20
+    for max_iter in [5000]:#50,100,500,1000,5000,10000,50000,100000,500000,1000000
+        for tabu_tenure in [10]:# test de la phase 1 : 1,5,10,15,20
             #Evite de réaliser des itérations de plusieurs heures plusieur fois pour les jeux de 10000 données
-            if max_iter in [10000,50000,100000,500000,1000000] and fileIndex in [1,2,4,5,7,8] :
-                #a=1
-                a=1
+            if max_iter in [100000,500000,1000000] and fileIndex in [2,5,8] :
+                #phase 1 : a=1
+                a=205
             else :
-                a=10
+                a=205
             for j in range(a):
                 max_capaxity = int(max_capaxity)
                 weight = 0
